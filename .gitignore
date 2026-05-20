@@ -1,5 +1,4 @@
-# Logs
-logs
+# Logs（*.log は logs/<agent>.log も含めて無視。logs/ 自体は .gitkeep で保持）
 *.log
 npm-debug.log*
 yarn-debug.log*

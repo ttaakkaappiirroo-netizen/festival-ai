@@ -102,3 +102,55 @@ GitHub CLI (`gh`) で Pull Request を作成、結果を Discord へ通知する
 npm run pr:auto -- --dry-run
 npm run pr:auto -- "AI Worker: 出店データを更新"
 ```
+
+---
+
+## Multi Agent System
+
+役割ごとに分かれた 4 つのエージェントで開発を分担する構成です。
+各エージェントの定義（役割・禁止事項・作業範囲・build確認ルール・Git運用ルール）は
+`agents/*.md` に記載しています。
+
+### 構成図
+
+```
+                       ┌──────────────────┐
+                       │   📋 Manager      │
+                       │  タスク管理・割当  │
+                       │  PR レビュー判断   │
+                       └────────┬─────────┘
+              ┌─────────────────┼─────────────────┐
+              ▼                 ▼                 ▼
+     ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+     │  🎨 Frontend   │ │  🗄️ Backend    │ │   🐛 Debug     │
+     │  UI / CSS /    │ │  Supabase /    │ │  バグ修正 /    │
+     │  コンポーネント │ │  API / データ  │ │  ビルド修復    │
+     └───────┬────────┘ └───────┬────────┘ └───────┬────────┘
+             └─────────────────┼──────────────────┘
+                               ▼
+                  scripts/agent-runner.js
+                               ▼
+             logs/<agent>.log  +  Discord 通知
+```
+
+### エージェント定義
+
+| エージェント | 定義ファイル | 主な担当 |
+| --- | --- | --- |
+| 🎨 Frontend | `agents/frontend.md` | React UI・CSS・レスポンシブ |
+| 🗄️ Backend | `agents/backend.md` | Supabase・API・データ層 |
+| 🐛 Debug | `agents/debug.md` | バグ修正・ビルド/lint エラー解消 |
+| 📋 Manager | `agents/manager.md` | タスク管理・割り当て・PR 判断 |
+
+### 実行
+
+```sh
+# agent 名 + task を渡して実行（ログ記録 + Discord 通知）
+npm run agent -- frontend "ヘッダーのレスポンシブ調整"
+
+# build 確認込みで実行
+npm run agent -- debug "ビルドエラーの修正" --build
+```
+
+- 実行ログは `logs/<agent>.log` に追記されます（`logs/*.log` は Git 管理対象外）。
+- Discord 通知にはエージェント名が含まれます。
