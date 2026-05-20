@@ -1,66 +1,67 @@
 import { Link } from 'react-router-dom'
+import { festival } from '../data'
+import { useFestival } from '../context/festivalContext'
+import DemoBanner from '../components/DemoBanner'
+import ShopCard from '../components/ShopCard'
+import NoticeCard from '../components/NoticeCard'
 
-const cards = [
-  {
-    icon: '🍩',
-    title: '出店一覧',
-    desc: 'クラス・部活の模擬店をまるごとチェック。グルメから雑貨まで。',
-    tag: 'SHOPS',
-    to: '/shops',
-  },
-  {
-    icon: '🗺️',
-    title: '校内マップ',
-    desc: '会場の現在地と出店位置をひと目で。迷わず目的地へ。',
-    tag: 'MAP',
-    to: '/map',
-  },
-  {
-    icon: '⏱️',
-    title: 'タイムテーブル',
-    desc: 'ステージ発表やライブの開演時間を時系列でナビゲート。',
-    tag: 'SCHEDULE',
-    to: '/timetable',
-  },
+const quickActions = [
+  { to: '/shops', icon: '🏪', label: '出店一覧' },
+  { to: '/map', icon: '🗺️', label: '混雑マップ' },
+  { to: '/news', icon: '📢', label: 'お知らせ' },
 ]
 
 function Home() {
+  const { shops, notices } = useFestival()
+  const importantNotices = notices.filter((n) => n.level === 'important')
+  const freeShops = shops.filter((s) => s.status === 'free').slice(0, 3)
+
   return (
-    <div className="app">
-      <div className="grid-bg" aria-hidden="true" />
-
-      <header className="hero">
-        <span className="badge">CULTURE FESTIVAL</span>
-        <h1 className="title">
-          文化祭<span className="title-year">2026</span>
+    <div className="page">
+      <section className="hero">
+        <span className="hero-badge">
+          ✦ {festival.name} {festival.year}
+        </span>
+        <h1 className="hero-title">
+          育英祭<span className="hero-os">OS</span>
         </h1>
-        <p className="subtitle">
-          未来へ繋がる、二日間。
-          <br />
-          光と音が交差するキャンパスへようこそ。
-        </p>
-        <div className="meta">
-          <span>2026.05.30 — 05.31</span>
-          <span className="dot" />
-          <span>OPEN 09:00</span>
-        </div>
-      </header>
+        <p className="hero-sub">文化祭を、スマホひとつで快適に。</p>
+        <span className="hero-time">📅 本日 {festival.hours}</span>
+      </section>
 
-      <main className="cards">
-        {cards.map((c) => (
-          <Link className="card" key={c.title} to={c.to}>
-            <span className="card-tag">{c.tag}</span>
-            <div className="card-icon">{c.icon}</div>
-            <h2 className="card-title">{c.title}</h2>
-            <p className="card-desc">{c.desc}</p>
-            <span className="card-link">VIEW &rarr;</span>
+      <DemoBanner />
+
+      <div className="quick-actions">
+        {quickActions.map((q) => (
+          <Link key={q.to} to={q.to} className="quick-card">
+            <span className="quick-icon">{q.icon}</span>
+            <span className="quick-label">{q.label}</span>
           </Link>
         ))}
-      </main>
+      </div>
 
-      <footer className="footer">
-        <p>© 2026 文化祭実行委員会 — Festival AI</p>
-      </footer>
+      <section className="section">
+        <h2 className="section-title">🚨 重要なお知らせ</h2>
+        <div className="stack">
+          {importantNotices.map((n) => (
+            <NoticeCard key={n.id} notice={n} />
+          ))}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2 className="section-title">✨ いま空いてる出店</h2>
+          <Link to="/shops" className="section-more">
+            すべて見る →
+          </Link>
+        </div>
+        <div className="stack">
+          {freeShops.map((s) => (
+            <ShopCard key={s.id} shop={s} />
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

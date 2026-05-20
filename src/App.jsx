@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
+import Header from './components/Header'
+import BottomNav from './components/BottomNav'
 import Home from './pages/Home'
 import Shops from './pages/Shops'
 import Map from './pages/Map'
-import Timetable from './pages/Timetable'
+import News from './pages/News'
+import Admin from './pages/Admin'
 
-// ページ遷移のたびにスクロール位置を先頭へ戻す
+// ページ遷移ごとにスクロール位置を先頭へ
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
@@ -17,16 +20,21 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <>
+    <div className="shell">
+      <Header />
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/shops" element={<Shops />} />
-        <Route path="/map" element={<Map />} />
-        <Route path="/timetable" element={<Timetable />} />
-        <Route path="*" element={<Home />} />
-      </Routes>
-    </>
+      <main className="content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/shops" element={<Shops />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </main>
+      <BottomNav />
+    </div>
   )
 }
 
