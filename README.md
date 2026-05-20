@@ -65,3 +65,40 @@ npm run task:done
 | `git commit` | 📝 新しいコミット（`post-commit` フック） |
 
 `.env` の設定例は `.env.example` を参照してください。
+
+---
+
+## AI Worker（自動 PR 作成）
+
+現在の変更内容から feature ブランチを作成し、**ビルド成功時のみ** commit / push して
+GitHub CLI (`gh`) で Pull Request を作成、結果を Discord へ通知するフローです。
+
+### コマンド
+
+| npm script | 動作 |
+| --- | --- |
+| `npm run pr:auto` | 変更から自動で PR を作成 |
+| `npm run pr:auto -- --dry-run` | 実行せず計画のみ表示 |
+| `npm run pr:auto -- "メッセージ"` | コミット/PR タイトルを指定 |
+
+### 流れ
+
+1. 変更を確認（無ければ終了）
+2. feature ブランチ `auto-pr/<timestamp>` を作成
+3. `npm run build` を実行
+4. **成功** → `git add -A` → commit → push
+5. `gh pr create` で Pull Request を作成
+6. PR URL を Discord へ通知（`🚀 自動PR`）
+7. いずれかで**失敗** → Discord へ失敗通知（`❌ 自動PR 失敗`）。
+   コミット前の失敗なら作成したブランチを破棄して元ブランチへ戻します。
+
+### 前提
+
+- `gh` が認証済みであること（`gh auth login`）。`PATH` に無い場合は `~/.local/bin/gh` を自動探索します。
+- PR のベースブランチは既定で `main`（環境変数 `PR_BASE` で変更可）。
+
+```sh
+# まず計画を確認してから実行するのが安全
+npm run pr:auto -- --dry-run
+npm run pr:auto -- "AI Worker: 出店データを更新"
+```

@@ -13,7 +13,8 @@
     "task": "node scripts/manager.js",
     "task:list": "node scripts/manager.js list",
     "task:start": "node scripts/manager.js start",
-    "task:done": "node scripts/manager.js done"
+    "task:done": "node scripts/manager.js done",
+    "pr:auto": "node scripts/auto-pr.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
