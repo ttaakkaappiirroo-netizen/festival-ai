@@ -1,17 +1,20 @@
 :root {
-  --bg: #03050f;
-  --bg-2: #060b1f;
-  --panel: rgba(12, 20, 48, 0.65);
-  --text: #b8c4e6;
-  --text-h: #f0f5ff;
-  --blue: #2f7bff;
-  --cyan: #38e8ff;
-  --blue-soft: rgba(47, 123, 255, 0.35);
+  --bg: #070b16;
+  --surface: #121a2e;
+  --surface-2: #0e1526;
+  --line: #26314d;
+  --line-soft: #1c2740;
+  --text: #9aa6c4;
+  --text-dim: #66718f;
+  --text-h: #eef2fb;
+  --blue: #3b82f6;
+  --blue-lite: #6ea8ff;
 
-  font: 16px/1.6 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, 'Hiragino Sans', 'Noto Sans JP', 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
   color-scheme: dark;
   color: var(--text);
-  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -28,11 +31,12 @@ body {
 
 body {
   background:
-    radial-gradient(900px 500px at 80% -10%, rgba(56, 232, 255, 0.18), transparent),
-    radial-gradient(800px 600px at 0% 100%, rgba(47, 123, 255, 0.22), transparent),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    radial-gradient(900px 520px at 50% -8%, #18254a 0%, transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
 }
 
-#root {
-  min-height: 100svh;
+button {
+  font-family: inherit;
 }

@@ -1,63 +1,39 @@
+import { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
+import Header from './components/Header'
+import BottomNav from './components/BottomNav'
+import Home from './pages/Home'
+import Shops from './pages/Shops'
+import Map from './pages/Map'
+import News from './pages/News'
+import Admin from './pages/Admin'
 
-const cards = [
-  {
-    icon: '🍩',
-    title: '出店一覧',
-    desc: 'クラス・部活の模擬店をまるごとチェック。グルメから雑貨まで。',
-    tag: 'SHOPS',
-  },
-  {
-    icon: '🗺️',
-    title: '校内マップ',
-    desc: '会場の現在地と出店位置をひと目で。迷わず目的地へ。',
-    tag: 'MAP',
-  },
-  {
-    icon: '⏱️',
-    title: 'タイムテーブル',
-    desc: 'ステージ発表やライブの開演時間を時系列でナビゲート。',
-    tag: 'SCHEDULE',
-  },
-]
+// ページ遷移ごとにスクロール位置を先頭へ
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 function App() {
   return (
-    <div className="app">
-      <div className="grid-bg" aria-hidden="true" />
-
-      <header className="hero">
-        <span className="badge">CULTURE FESTIVAL</span>
-        <h1 className="title">
-          文化祭<span className="title-year">2026</span>
-        </h1>
-        <p className="subtitle">
-          未来へ繋がる、二日間。
-          <br />
-          光と音が交差するキャンパスへようこそ。
-        </p>
-        <div className="meta">
-          <span>2026.05.30 — 05.31</span>
-          <span className="dot" />
-          <span>OPEN 09:00</span>
-        </div>
-      </header>
-
-      <main className="cards">
-        {cards.map((c) => (
-          <article className="card" key={c.title}>
-            <span className="card-tag">{c.tag}</span>
-            <div className="card-icon">{c.icon}</div>
-            <h2 className="card-title">{c.title}</h2>
-            <p className="card-desc">{c.desc}</p>
-            <span className="card-link">VIEW &rarr;</span>
-          </article>
-        ))}
+    <div className="shell">
+      <Header />
+      <ScrollToTop />
+      <main className="content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/shops" element={<Shops />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<Home />} />
+        </Routes>
       </main>
-
-      <footer className="footer">
-        <p>© 2026 文化祭実行委員会 — Festival AI</p>
-      </footer>
+      <BottomNav />
     </div>
   )
 }
