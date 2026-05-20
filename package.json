@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "node scripts/notify-discord.js build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "notify": "node scripts/notify-discord.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
