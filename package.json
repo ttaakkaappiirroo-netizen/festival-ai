@@ -9,7 +9,11 @@
     "postbuild": "node scripts/notify-discord.js build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "notify": "node scripts/notify-discord.js"
+    "notify": "node scripts/notify-discord.js",
+    "task": "node scripts/manager.js",
+    "task:list": "node scripts/manager.js list",
+    "task:start": "node scripts/manager.js start",
+    "task:done": "node scripts/manager.js done"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
@@ -27,6 +31,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "remark": "^15.0.1",
     "vite": "^8.0.12"
   }
 }
