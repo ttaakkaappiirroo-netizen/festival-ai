@@ -15,13 +15,36 @@ export const STATUS = {
   closed: { label: '一時停止', color: '#94a3b8' },
 }
 
-// カテゴリ色
+// カテゴリ色（キーが正式なカテゴリ名。検索ボタンもこの順で表示される）
 export const CATEGORY = {
   フード: '#fb923c',
-  ドリンク: '#38bdf8',
   ゲーム: '#a78bfa',
   展示: '#60a5fa',
   ステージ: '#f472b6',
+  ドリンク: '#38bdf8',
+}
+
+// カテゴリ名の表記ゆれ → 正式カテゴリ名の対応表。
+// Supabase 上のデータが英語表記などになっていても検索できるようにするための保険。
+const CATEGORY_ALIASES = {
+  フード: ['food', '飲食', '屋台', 'グルメ'],
+  ゲーム: ['game', 'games', '遊び'],
+  展示: ['exhibit', 'exhibition', 'display', '展示物'],
+  ステージ: ['stage', 'show', 'performance', '公演', '発表'],
+  ドリンク: ['drink', 'drinks', '飲み物', '飲料'],
+}
+
+// 前後空白・英語表記などを吸収して正式カテゴリ名を返す。
+// 未知の値はトリムしてそのまま返す。
+export function normalizeCategory(value) {
+  if (!value) return ''
+  const v = String(value).trim()
+  if (CATEGORY[v]) return v
+  const lower = v.toLowerCase()
+  for (const [canonical, aliases] of Object.entries(CATEGORY_ALIASES)) {
+    if (aliases.some((a) => a.toLowerCase() === lower)) return canonical
+  }
+  return v
 }
 
 export const FLOORS = ['1F', '2F', '3F']

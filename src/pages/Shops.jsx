@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CATEGORY } from '../data'
+import { CATEGORY, normalizeCategory } from '../data'
 import { useFestival } from '../context/festivalContext'
 import DemoBanner from '../components/DemoBanner'
 import ShopCard from '../components/ShopCard'
@@ -14,7 +14,8 @@ function Shops() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return shops.filter((s) => {
-      const matchCat = activeCat === 'すべて' || s.category === activeCat
+      const matchCat =
+        activeCat === 'すべて' || normalizeCategory(s.category) === activeCat
       const matchQuery =
         q === '' ||
         s.name.toLowerCase().includes(q) ||

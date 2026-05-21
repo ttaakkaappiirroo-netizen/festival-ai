@@ -40,6 +40,28 @@ alter table public.shops drop constraint if exists shops_status_check;
 alter table public.shops add  constraint shops_status_check
   check (status in ('free', 'normal', 'busy', 'soldout', 'closed'));
 
+-- category の表記ゆれ（英語表記・前後空白など）を日本語カテゴリへ正規化。
+-- フロント側の検索ボタンの値と一致させるための処置（再実行しても安全）。
+update public.shops set category = 'フード'
+  where lower(trim(category)) in ('food', '飲食', '屋台', 'グルメ');
+update public.shops set category = 'ゲーム'
+  where lower(trim(category)) in ('game', 'games', '遊び');
+update public.shops set category = '展示'
+  where lower(trim(category)) in ('exhibit', 'exhibition', 'display', '展示物');
+update public.shops set category = 'ステージ'
+  where lower(trim(category)) in ('stage', 'show', 'performance', '公演', '発表');
+update public.shops set category = 'ドリンク'
+  where lower(trim(category)) in ('drink', 'drinks', '飲み物', '飲料');
+update public.shops set category = trim(category)
+  where category <> trim(category);
+
+-- category の値を日本語カテゴリに制限（drop → add で再実行可能）
+-- ※ 上記の正規化で拾えない値が残っているとこの行でエラーになります。
+--   その場合は  select distinct category from public.shops;  で確認してください。
+alter table public.shops drop constraint if exists shops_category_check;
+alter table public.shops add  constraint shops_category_check
+  check (category in ('フード', 'ゲーム', '展示', 'ステージ', 'ドリンク'));
+
 
 -- ════════════════════════════════════════════════════════════
 -- 2. notices テーブル（お知らせ）
