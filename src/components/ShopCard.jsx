@@ -1,9 +1,8 @@
-import { STATUS, CATEGORY, normalizeCategory } from '../data'
+import { STATUS, CATEGORY } from '../data'
 
 function ShopCard({ shop }) {
   const st = STATUS[shop.status]
-  const category = normalizeCategory(shop.category)
-  const catColor = CATEGORY[category]
+  const catColor = CATEGORY[shop.category]
 
   return (
     <article className="shopcard" style={{ '--st': st.color }}>
@@ -13,7 +12,7 @@ function ShopCard({ shop }) {
             className="cat-badge"
             style={{ color: catColor, borderColor: catColor }}
           >
-            {category}
+            {shop.category}
           </span>
           <span className="shopcard-org">{shop.org}</span>
         </div>
