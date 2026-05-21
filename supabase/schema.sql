@@ -60,9 +60,68 @@ alter table public.notices add  constraint notices_level_check
 
 
 -- ════════════════════════════════════════════════════════════
--- 3. Row Level Security
---    文化祭デモ用に anon（公開キー）からの読み書きを許可しています。
---    本番運用では書き込みを認証ユーザー限定に変更してください。
+-- 3. profiles テーブル（ユーザー権限）
+--    Supabase Auth の各ユーザーに role を紐づけます。
+--    role = 'admin' のユーザーだけが管理画面で編集できます。
+-- ════════════════════════════════════════════════════════════
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade
+);
+
+alter table public.profiles add column if not exists email      text;
+alter table public.profiles add column if not exists role       text        not null default 'user';
+alter table public.profiles add column if not exists created_at timestamptz not null default now();
+
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add  constraint profiles_role_check
+  check (role in ('user', 'admin'));
+
+alter table public.profiles enable row level security;
+
+-- 自分の profile だけ参照可能（フロントの管理者判定に使用）
+drop policy if exists "profiles_self_read" on public.profiles;
+create policy "profiles_self_read"
+  on public.profiles for select using (auth.uid() = id);
+
+-- サインアップ時に profile を自動作成するトリガー
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email)
+  values (new.id, new.email)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ログイン中のユーザーが管理者かどうかを返すヘルパー
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+
+-- ════════════════════════════════════════════════════════════
+-- 4. Row Level Security（shops / notices）
+--    閲覧は公開、書き込みは role = 'admin' のユーザー限定です。
 -- ════════════════════════════════════════════════════════════
 
 alter table public.shops   enable row level security;
@@ -71,21 +130,23 @@ alter table public.notices enable row level security;
 -- ポリシーは drop → create で再実行可能に
 drop policy if exists "shops_public_read"     on public.shops;
 drop policy if exists "shops_public_update"   on public.shops;
+drop policy if exists "shops_admin_update"    on public.shops;
 drop policy if exists "notices_public_read"   on public.notices;
 drop policy if exists "notices_public_insert" on public.notices;
+drop policy if exists "notices_admin_insert"  on public.notices;
 
 create policy "shops_public_read"
   on public.shops   for select using (true);
-create policy "shops_public_update"
-  on public.shops   for update using (true) with check (true);
+create policy "shops_admin_update"
+  on public.shops   for update using (public.is_admin()) with check (public.is_admin());
 create policy "notices_public_read"
   on public.notices for select using (true);
-create policy "notices_public_insert"
-  on public.notices for insert with check (true);
+create policy "notices_admin_insert"
+  on public.notices for insert with check (public.is_admin());
 
 
 -- ════════════════════════════════════════════════════════════
--- 4. サンプルデータ
+-- 5. サンプルデータ
 --    テーブルが空のときだけ投入するため、再実行しても重複しません。
 --    insert の列順は上の add column の型定義と完全一致しています。
 -- ════════════════════════════════════════════════════════════
@@ -94,19 +155,19 @@ create policy "notices_public_insert"
 insert into public.shops (sort, room, name, org, category, status, floor, price, wait, comment)
 select v.sort, v.room, v.name, v.org, v.category, v.status, v.floor, v.price, v.wait, v.comment
 from (values
-  (1,  '1-A教室', '育英カレー食堂',     '3年3組',     'フード',   'busy',    '1F', '¥400', '約15分',       'スパイス香る本格カレー！'),
-  (2,  '1-B教室', 'クレープ夢工房',     '2年4組',     'フード',   'normal',  '1F', '¥350', '約8分',        '20種類のトッピングから選べます'),
-  (3,  '1-C教室', '射的屋台',           '1年3組',     'ゲーム',   'normal',  '1F', '¥300', '約3分',        '景品まだまだあります🎁'),
-  (4,  '1-D教室', 'たこ焼きスタンド',   '3年5組',     'フード',   'soldout', '1F', '¥300', '—',            '本日分は完売しました'),
-  (5,  '1-E教室', '焼きそば屋',         '2年1組',     'フード',   'normal',  '1F', '¥400', '約5分',        'ソース・塩から選べます'),
-  (6,  '中庭',    'ラムネ釣り',         '1年1組',     'ゲーム',   'free',    '1F', '¥200', '約1分',        '今ならすぐ遊べます！'),
-  (7,  '体育館',  '軽音ライブ',         '軽音部',     'ステージ', 'busy',    '1F', '無料', '次回 13:30〜', '人気バンドが続々登場'),
-  (8,  '体育館',  'ダンスステージ',     'ダンス部',   'ステージ', 'closed',  '1F', '無料', '次回 14:00〜', '転換のため一時停止中'),
-  (9,  '2-B教室', '書道作品展',         '書道部',     '展示',     'free',    '2F', '無料', '約1分',        '体験コーナーは随時受付中'),
-  (10, '2-C教室', '科学マジックショー', '科学部',     '展示',     'normal',  '2F', '無料', '約10分',       '毎時30分にショー開催'),
-  (11, '3-A教室', '鉄道ジオラマ展',     '鉄道研究部', '展示',     'free',    '3F', '無料', '約2分',        '毎時00分にデモ運行🚆'),
-  (12, '3-B教室', 'VRゲーム体験',       'パソコン部', 'ゲーム',   'busy',    '3F', '¥500', '約20分',       '最新VRが体験できる'),
-  (13, '3-C教室', '喫茶ノスタルジア',   '2年2組',     'ドリンク', 'normal',  '3F', '¥300', '約7分',        'レトロ空間でひと休み')
+  (1,  '1-A教室', '育英カレー食堂',     '3年3組',     'フード',   'busy',    '1', '¥400', '約15分',       'スパイス香る本格カレー！'),
+  (2,  '1-B教室', 'クレープ夢工房',     '2年4組',     'フード',   'normal',  '1', '¥350', '約8分',        '20種類のトッピングから選べます'),
+  (3,  '1-C教室', '射的屋台',           '1年3組',     'ゲーム',   'normal',  '1', '¥300', '約3分',        '景品まだまだあります🎁'),
+  (4,  '1-D教室', 'たこ焼きスタンド',   '3年5組',     'フード',   'soldout', '1', '¥300', '—',            '本日分は完売しました'),
+  (5,  '1-E教室', '焼きそば屋',         '2年1組',     'フード',   'normal',  '1', '¥400', '約5分',        'ソース・塩から選べます'),
+  (6,  '中庭',    'ラムネ釣り',         '1年1組',     'ゲーム',   'free',    '1', '¥200', '約1分',        '今ならすぐ遊べます！'),
+  (7,  '体育館',  '軽音ライブ',         '軽音部',     'ステージ', 'busy',    '1', '無料', '次回 13:30〜', '人気バンドが続々登場'),
+  (8,  '体育館',  'ダンスステージ',     'ダンス部',   'ステージ', 'closed',  '1', '無料', '次回 14:00〜', '転換のため一時停止中'),
+  (9,  '2-B教室', '書道作品展',         '書道部',     '展示',     'free',    '2', '無料', '約1分',        '体験コーナーは随時受付中'),
+  (10, '2-C教室', '科学マジックショー', '科学部',     '展示',     'normal',  '2', '無料', '約10分',       '毎時30分にショー開催'),
+  (11, '3-A教室', '鉄道ジオラマ展',     '鉄道研究部', '展示',     'free',    '3', '無料', '約2分',        '毎時00分にデモ運行🚆'),
+  (12, '3-B教室', 'VRゲーム体験',       'パソコン部', 'ゲーム',   'busy',    '3', '¥500', '約20分',       '最新VRが体験できる'),
+  (13, '3-C教室', '喫茶ノスタルジア',   '2年2組',     'ドリンク', 'normal',  '3', '¥300', '約7分',        'レトロ空間でひと休み')
 ) as v (sort, room, name, org, category, status, floor, price, wait, comment)
 where not exists (select 1 from public.shops);
 

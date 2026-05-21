@@ -8,6 +8,8 @@ import Shops from './pages/Shops'
 import Map from './pages/Map'
 import News from './pages/News'
 import Admin from './pages/Admin'
+import Login from './pages/Login'
+import RequireAdmin from './components/RequireAdmin'
 
 // ページ遷移ごとにスクロール位置を先頭へ
 function ScrollToTop() {
@@ -29,7 +31,15 @@ function App() {
           <Route path="/shops" element={<Shops />} />
           <Route path="/map" element={<Map />} />
           <Route path="/news" element={<News />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <Admin />
+              </RequireAdmin>
+            }
+          />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

@@ -4,13 +4,16 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { FestivalProvider } from './context/FestivalProvider.jsx'
+import { AuthProvider } from './context/AuthProvider.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <FestivalProvider>
-        <App />
-      </FestivalProvider>
+      <AuthProvider>
+        <FestivalProvider>
+          <App />
+        </FestivalProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

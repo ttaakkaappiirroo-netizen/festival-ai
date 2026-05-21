@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { STATUS } from '../data'
 import { useFestival } from '../context/festivalContext'
+import { useAuth } from '../context/authContext'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { updateShopStatus, addNotice } from '../lib/api'
 
@@ -8,6 +9,7 @@ const statusKeys = Object.keys(STATUS)
 
 function Admin() {
   const { shops, notices, refresh } = useFestival()
+  const { user, signOut } = useAuth()
   const [busyId, setBusyId] = useState(null)
   const [posting, setPosting] = useState(false)
   const [message, setMessage] = useState('')
@@ -53,6 +55,13 @@ function Admin() {
         <h1 className="page-title">管理</h1>
         <p className="page-sub">出店ステータスとお知らせを編集</p>
       </header>
+
+      <div className="admin-account">
+        <span className="admin-account-mail">👤 {user?.email}</span>
+        <button className="logout-btn" onClick={signOut}>
+          ログアウト
+        </button>
+      </div>
 
       <div className={`conn-status ${isSupabaseConfigured ? 'conn-ok' : 'conn-off'}`}>
         {isSupabaseConfigured ? (
